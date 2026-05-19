@@ -169,21 +169,39 @@ def stream_bayser_run(
     stdout_lines: list[str] = []
     stderr_lines: list[str] = []
 
+    def drain_queue() -> None:
+        while True:
+            try:
+                item = q.get_nowait()
+            except queue.Empty:
+                break
+
+            if item.get("type") == "line":
+                if item.get("stream") == "stdout":
+                    stdout_lines.append(item.get("text", ""))
+                else:
+                    stderr_lines.append(item.get("text", ""))
+
     while True:
         elapsed = time.time() - start
 
         if elapsed > timeout_seconds and process.poll() is None:
             process.kill()
-            stdout, stderr = process.communicate()
 
-            stdout_text = "".join(stdout_lines) + (stdout or "")
-            stderr_text = "".join(stderr_lines) + (stderr or "")
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+
+            stdout_thread.join(timeout=1)
+            stderr_thread.join(timeout=1)
+            drain_queue()
 
             yield {
                 "type": "timeout",
                 "elapsed": elapsed,
-                "stdout": stdout_text,
-                "stderr": stderr_text,
+                "stdout": "".join(stdout_lines),
+                "stderr": "".join(stderr_lines),
             }
             return
 
@@ -206,6 +224,9 @@ def stream_bayser_run(
             }
 
         if process.poll() is not None:
+            stdout_thread.join(timeout=1)
+            stderr_thread.join(timeout=1)
+
             while True:
                 try:
                     item = q.get_nowait()

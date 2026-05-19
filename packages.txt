@@ -1,2 +1,5 @@
 libopenblas0
 libopenblas-dev
+liblapack3
+liblapack-dev
+gfortran

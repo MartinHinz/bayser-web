@@ -1,8 +1,8 @@
-# Bayser Web
+# BaySer Web
 
-Bayser Web is a small Streamlit frontend for [Bayser](https://github.com/MartinHinz/bayser), a Python package for radiocarbon-informed Bayesian seriation.
+BaySer Web is a small Streamlit frontend for [BaySer](https://github.com/MartinHinz/bayser), a Python package for radiocarbon-informed Bayesian seriation.
 
-The web app is intended for quick exploratory runs. Full analyses, longer MCMC runs, model comparison, and publication-grade workflows should be carried out locally with the Bayser command-line interface.
+The web app is intended for quick exploratory runs. Full analyses, longer MCMC runs, model comparison, and publication-grade workflows should be carried out locally with the BaySer command-line interface.
 
 ## Online workflow
 
@@ -40,7 +40,7 @@ G2,0,1,1
 G3,1,1,0
 ```
 
-Values are converted to binary presence/absence by Bayser.
+Values are converted to binary presence/absence by BaySer.
 
 ### Radiocarbon table
 
@@ -81,7 +81,7 @@ uv sync
 uv run streamlit run app.py
 ```
 
-The app calls Bayser in a subprocess using the current Python environment.
+The app calls BaySer in a subprocess using the current Python environment.
 
 ## Related repository
 
@@ -91,6 +91,6 @@ Core package:
 
 ## License
 
-Bayser Web is released under the MIT License. See `LICENSE` for details.
+BaySer Web is released under the MIT License. See `LICENSE` for details.
 
 The bundled IntCal20 calibration curve is not part of the software license. Please cite Reimer et al. (2020) when using radiocarbon-linked runs.

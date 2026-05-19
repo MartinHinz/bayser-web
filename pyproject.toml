@@ -1,0 +1,18 @@
+[project]
+name = "bayser-web"
+version = "0.1.0"
+description = "Streamlit frontend for Bayser"
+requires-python = ">=3.14"
+dependencies = [
+    "streamlit>=1.50",
+    "pandas==3.0.2",
+    "pymc==5.28.5",
+    "pytensor==2.38.3",
+    "numpy==2.4.4",
+    "scipy==1.17.1",
+    "arviz==0.23.4",
+    "bayser",
+]
+
+[tool.uv.sources]
+bayser = { git = "https://github.com/MartinHinz/bayser.git", tag = "v0.1.0-web-demo" }

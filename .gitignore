@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[oc]
+*.egg-info/
+.venv/
+
+# Streamlit / local runtime outputs
+outputs/
+results/
+plots/
+*.zip
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

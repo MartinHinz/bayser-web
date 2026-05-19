@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import time
 from datetime import datetime
@@ -28,7 +27,7 @@ APP_ROOT = Path(__file__).resolve().parent
 OUTPUT_ROOT = APP_ROOT / "outputs"
 OUTPUT_ROOT.mkdir(exist_ok=True)
 
-ONLINE_TIMEOUT_SECONDS = 120
+ONLINE_TIMEOUT_SECONDS = 4 * 60
 OUTPUT_RETENTION_SECONDS = 2 * 60 * 60
 
 DEFAULT_INTCAL20_CANDIDATES = [
@@ -458,7 +457,7 @@ with st.sidebar:
     st.header("Runtime")
 
     st.caption(
-        "Online runs are limited to 2 minutes. For longer runs, use Bayser locally."
+        "Online runs are limited to 4 minutes. For longer runs, use Bayser locally."
     )
 
     show_live_log = st.checkbox("Show live log", value=False)
@@ -1200,88 +1199,3 @@ with tab_results:
             if stdout_path.exists():
                 st.subheader("stdout")
                 st.code(stdout_path.read_text(encoding="utf-8") or "(empty)")
-
-
-with st.expander("Runtime environment"):
-    import sys
-    import platform
-    import importlib.metadata as md
-
-    import arviz
-    import bayser
-    import matplotlib
-    import numpy
-    import pymc
-    import pytensor
-    import scipy
-    import streamlit
-    import xarray
-
-    runtime_info = {
-        "python": sys.version,
-        "executable": sys.executable,
-        "platform": platform.platform(),
-        "machine": platform.machine(),
-        "processor": platform.processor(),
-        "packages": {
-            "bayser": {
-                "version": getattr(bayser, "__version__", "unknown"),
-                "path": getattr(bayser, "__file__", "n/a"),
-            },
-            "pymc": {
-                "version": pymc.__version__,
-                "path": getattr(pymc, "__file__", "n/a"),
-            },
-            "pytensor": {
-                "version": pytensor.__version__,
-                "path": getattr(pytensor, "__file__", "n/a"),
-            },
-            "numpy": {
-                "version": numpy.__version__,
-                "path": getattr(numpy, "__file__", "n/a"),
-            },
-            "pandas": {
-                "version": pd.__version__,
-                "path": getattr(pd, "__file__", "n/a"),
-            },
-            "scipy": {
-                "version": scipy.__version__,
-                "path": getattr(scipy, "__file__", "n/a"),
-            },
-            "arviz": {
-                "version": arviz.__version__,
-                "path": getattr(arviz, "__file__", "n/a"),
-            },
-            "streamlit": {
-                "version": streamlit.__version__,
-                "path": getattr(streamlit, "__file__", "n/a"),
-            },
-            "matplotlib": {
-                "version": matplotlib.__version__,
-                "path": getattr(matplotlib, "__file__", "n/a"),
-            },
-            "xarray": {
-                "version": xarray.__version__,
-                "path": getattr(xarray, "__file__", "n/a"),
-            },
-        },
-        "pytensor": {
-            "blas__ldflags": pytensor.config.blas__ldflags,
-            "compiledir": str(pytensor.config.compiledir),
-            "mode": str(pytensor.config.mode),
-            "floatX": pytensor.config.floatX,
-        },
-        "thread_env": {
-            key: os.environ.get(key)
-            for key in [
-                "OMP_NUM_THREADS",
-                "OPENBLAS_NUM_THREADS",
-                "MKL_NUM_THREADS",
-                "VECLIB_MAXIMUM_THREADS",
-                "NUMEXPR_NUM_THREADS",
-                "PYTENSOR_FLAGS",
-            ]
-        },
-    }
-
-    st.json(runtime_info)

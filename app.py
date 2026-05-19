@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import time
 from datetime import datetime
@@ -169,6 +170,26 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
+def bayser_subprocess_env(progress_path: Path) -> dict[str, str]:
+    """Environment overrides for the Bayser subprocess.
+
+    On Streamlit Community Cloud, PyMC chains and OpenBLAS/OpenMP can otherwise
+    oversubscribe the small runtime machine. Restricting numerical libraries to
+    one thread per process makes the online quick preset more stable and avoids
+    noisy backend-dependent behaviour.
+    """
+
+    return {
+        "BAYSER_PROGRESS_FILE": str(progress_path),
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "PYTENSOR_FLAGS": "blas__ldflags=-lopenblas",
+    }
+
+
 def cleanup_old_outputs(
     output_root: Path,
     *,
@@ -250,12 +271,6 @@ def round_numeric_columns(df: pd.DataFrame, digits: int = 3) -> pd.DataFrame:
     return out
 
 
-def dataframe_if_exists(path: Path, title: str) -> None:
-    if path.exists():
-        st.subheader(title)
-        st.dataframe(pd.read_csv(path), width="stretch")
-
-
 def parse_outlier_id(spec: str) -> str:
     """Extract the assemblage ID from ASSEMBLAGE_ID, ASSEMBLAGE_ID:PRIOR, etc."""
 
@@ -280,8 +295,6 @@ def get_feature_ids(
             return []
         return features_raw[feature_id_col].astype(str).tolist()
 
-    # Bayser will use the first column as row index if no explicit ID column is
-    # supplied. Mirror this behaviour for validation.
     if len(features_raw.columns) == 0:
         return []
 
@@ -743,6 +756,8 @@ with tab_run:
             encoding="utf-8",
         )
 
+        env = bayser_subprocess_env(progress_path)
+
         app_config = {
             "preset": preset,
             "use_c14": use_c14,
@@ -765,6 +780,7 @@ with tab_run:
             if DEFAULT_INTCAL20_PATH is not None
             else None,
             "custom_intcal20_uploaded": intcal20_file is not None,
+            "subprocess_env": env,
         }
 
         write_json(run_root / "app_config.json", app_config)
@@ -780,10 +796,6 @@ with tab_run:
         stdout_lines: list[str] = []
         stderr_lines: list[str] = []
         final_event: dict | None = None
-
-        env = {
-            "BAYSER_PROGRESS_FILE": str(progress_path),
-        }
 
         for event in stream_bayser_run(
             cmd,
@@ -890,10 +902,6 @@ with tab_results:
 
         st.caption(f"Run directory: `{run_root}`")
 
-        # ---------------------------------------------------------------------
-        # Compact run summary
-        # ---------------------------------------------------------------------
-
         metadata_path = results_dir / "metadata.csv"
         meta = None
         meta_dict = {}
@@ -925,10 +933,6 @@ with tab_results:
 
             st.table(summary_df)
 
-        # ---------------------------------------------------------------------
-        # Main plot
-        # ---------------------------------------------------------------------
-
         st.subheader("Main diagnostic plot")
 
         preferred_plots = [
@@ -943,10 +947,6 @@ with tab_results:
             st.image(str(main_plot), caption=main_plot.name)
         else:
             st.info("No main plot found.")
-
-        # ---------------------------------------------------------------------
-        # Essential outlier information, if available
-        # ---------------------------------------------------------------------
 
         posthoc_path = results_dir / "posthoc_outlier_candidates.csv"
         active_outliers_path = results_dir / "active_outliers.csv"
@@ -1079,10 +1079,6 @@ with tab_results:
                     hide_index=True,
                 )
 
-        # ---------------------------------------------------------------------
-        # Essential table: assemblage summary
-        # ---------------------------------------------------------------------
-
         grave_summary_path = results_dir / "grave_summary.csv"
 
         if grave_summary_path.exists():
@@ -1122,10 +1118,6 @@ with tab_results:
         else:
             st.info("No assemblage summary found.")
 
-        # ---------------------------------------------------------------------
-        # Download
-        # ---------------------------------------------------------------------
-
         st.subheader("Download")
 
         zip_path = shutil.make_archive(str(run_root), "zip", run_root)
@@ -1138,10 +1130,6 @@ with tab_results:
                 mime="application/zip",
                 type="primary",
             )
-
-        # ---------------------------------------------------------------------
-        # Secondary outputs
-        # ---------------------------------------------------------------------
 
         with st.expander("Additional plots"):
             plot_files = sorted(plot_dir.glob("*.png"))
@@ -1181,6 +1169,11 @@ with tab_results:
                 st.subheader("Command")
                 st.code(command_path.read_text(encoding="utf-8"), language="bash")
 
+            app_config_path = run_root / "app_config.json"
+            if app_config_path.exists():
+                st.subheader("App configuration")
+                st.json(json.loads(app_config_path.read_text(encoding="utf-8")))
+
             if meta is not None:
                 st.subheader("Metadata")
                 meta_show = meta.copy()
@@ -1208,21 +1201,20 @@ with tab_results:
                 st.subheader("stdout")
                 st.code(stdout_path.read_text(encoding="utf-8") or "(empty)")
 
+
 with st.expander("Runtime environment"):
     import sys
     import platform
-    import os
     import importlib.metadata as md
 
+    import arviz
     import bayser
+    import matplotlib
+    import numpy
     import pymc
     import pytensor
-    import numpy
-    import pandas
     import scipy
-    import arviz
     import streamlit
-    import matplotlib
     import xarray
 
     runtime_info = {
@@ -1249,8 +1241,8 @@ with st.expander("Runtime environment"):
                 "path": getattr(numpy, "__file__", "n/a"),
             },
             "pandas": {
-                "version": pandas.__version__,
-                "path": getattr(pandas, "__file__", "n/a"),
+                "version": pd.__version__,
+                "path": getattr(pd, "__file__", "n/a"),
             },
             "scipy": {
                 "version": scipy.__version__,
@@ -1275,8 +1267,8 @@ with st.expander("Runtime environment"):
         },
         "pytensor": {
             "blas__ldflags": pytensor.config.blas__ldflags,
-            "compiledir": pytensor.config.compiledir,
-            "mode": pytensor.config.mode,
+            "compiledir": str(pytensor.config.compiledir),
+            "mode": str(pytensor.config.mode),
             "floatX": pytensor.config.floatX,
         },
         "thread_env": {

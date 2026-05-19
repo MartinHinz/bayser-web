@@ -70,7 +70,7 @@ wheels = [
 [[package]]
 name = "bayser"
 version = "0.1.0"
-source = { git = "https://github.com/MartinHinz/bayser.git?branch=master#93cfc265091cfada41cd5407845e5ea0df08948c" }
+source = { git = "https://github.com/MartinHinz/bayser.git?tag=v0.1.1-web-demo#93cfc265091cfada41cd5407845e5ea0df08948c" }
 dependencies = [
     { name = "arviz" },
     { name = "matplotlib" },
@@ -99,7 +99,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "arviz", specifier = "==0.23.4" },
-    { name = "bayser", git = "https://github.com/MartinHinz/bayser.git?branch=master" },
+    { name = "bayser", git = "https://github.com/MartinHinz/bayser.git?tag=v0.1.1-web-demo" },
     { name = "numpy", specifier = "==2.4.4" },
     { name = "pandas", specifier = "==3.0.2" },
     { name = "pymc", specifier = "==5.28.5" },

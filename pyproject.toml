@@ -15,7 +15,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-bayser = { git = "https://github.com/MartinHinz/bayser.git", branch = "master" }
-
-# bayser = { git = "https://github.com/MartinHinz/bayser.git", tag = "v0.1.0-web-demo" }
-# bayser = { path = "../bayser", editable = true }
+bayser = { git = "https://github.com/MartinHinz/bayser.git", tag = "v0.1.1-web-demo" }

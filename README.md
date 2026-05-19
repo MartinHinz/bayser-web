@@ -1,4 +1,4 @@
-# BaySer Web
+# BaySer Web <img src="bayser_web_logo_small.png" align="right" />
 
 BaySer Web is a small Streamlit frontend for [BaySer](https://github.com/MartinHinz/bayser), a Python package for radiocarbon-informed Bayesian seriation.
 

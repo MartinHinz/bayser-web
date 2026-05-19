@@ -1207,3 +1207,89 @@ with tab_results:
             if stdout_path.exists():
                 st.subheader("stdout")
                 st.code(stdout_path.read_text(encoding="utf-8") or "(empty)")
+
+with st.expander("Runtime environment"):
+    import sys
+    import platform
+    import os
+    import importlib.metadata as md
+
+    import bayser
+    import pymc
+    import pytensor
+    import numpy
+    import pandas
+    import scipy
+    import arviz
+    import streamlit
+    import matplotlib
+    import xarray
+
+    runtime_info = {
+        "python": sys.version,
+        "executable": sys.executable,
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "packages": {
+            "bayser": {
+                "version": getattr(bayser, "__version__", "unknown"),
+                "path": getattr(bayser, "__file__", "n/a"),
+            },
+            "pymc": {
+                "version": pymc.__version__,
+                "path": getattr(pymc, "__file__", "n/a"),
+            },
+            "pytensor": {
+                "version": pytensor.__version__,
+                "path": getattr(pytensor, "__file__", "n/a"),
+            },
+            "numpy": {
+                "version": numpy.__version__,
+                "path": getattr(numpy, "__file__", "n/a"),
+            },
+            "pandas": {
+                "version": pandas.__version__,
+                "path": getattr(pandas, "__file__", "n/a"),
+            },
+            "scipy": {
+                "version": scipy.__version__,
+                "path": getattr(scipy, "__file__", "n/a"),
+            },
+            "arviz": {
+                "version": arviz.__version__,
+                "path": getattr(arviz, "__file__", "n/a"),
+            },
+            "streamlit": {
+                "version": streamlit.__version__,
+                "path": getattr(streamlit, "__file__", "n/a"),
+            },
+            "matplotlib": {
+                "version": matplotlib.__version__,
+                "path": getattr(matplotlib, "__file__", "n/a"),
+            },
+            "xarray": {
+                "version": xarray.__version__,
+                "path": getattr(xarray, "__file__", "n/a"),
+            },
+        },
+        "pytensor": {
+            "blas__ldflags": pytensor.config.blas__ldflags,
+            "compiledir": pytensor.config.compiledir,
+            "mode": pytensor.config.mode,
+            "floatX": pytensor.config.floatX,
+        },
+        "thread_env": {
+            key: os.environ.get(key)
+            for key in [
+                "OMP_NUM_THREADS",
+                "OPENBLAS_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "VECLIB_MAXIMUM_THREADS",
+                "NUMEXPR_NUM_THREADS",
+                "PYTENSOR_FLAGS",
+            ]
+        },
+    }
+
+    st.json(runtime_info)
